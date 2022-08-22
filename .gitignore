@@ -4,6 +4,9 @@
 # Log file
 *.log
 
+# DB mount data
+.data
+
 # Package Files #
 *.jar
 *.war
