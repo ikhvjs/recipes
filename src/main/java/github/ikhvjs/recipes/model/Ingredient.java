@@ -1,27 +1,29 @@
 package github.ikhvjs.recipes.model;
 
-import org.hibernate.validator.constraints.UniqueElements;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-import java.util.List;
 
 @Entity
 @Table(name = "ingredients",
         uniqueConstraints = @UniqueConstraint(columnNames = {"recipe_id", "ingredient_name"}))
-public class Ingredients {
+public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotEmpty
-    private String ingredient_name;
+    @Column(name="ingredient_name")
+    private String ingredientName;
 
     @ManyToOne
     private Recipe recipe;
 
 
-    public Ingredients() {
+    public Ingredient() {
+    }
+
+    public Ingredient(String ingredientName) {
+        this.ingredientName = ingredientName;
     }
 
     public Long getId() {
@@ -32,12 +34,12 @@ public class Ingredients {
         this.id = id;
     }
 
-    public String getIngredient_name() {
-        return ingredient_name;
+    public String getIngredientName() {
+        return ingredientName;
     }
 
-    public void setIngredient_name(String ingredient_name) {
-        this.ingredient_name = ingredient_name;
+    public void setIngredientName(String ingredientName) {
+        this.ingredientName = ingredientName;
     }
 
     public Recipe getRecipe() {
