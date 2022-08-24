@@ -17,18 +17,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.validation.ValidationException;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,7 +46,7 @@ public class RecipeControllerTest {
 
 
     @Nested
-    @DisplayName("GET /recipe/{id}")
+    @DisplayName("GET /recipes/{id}")
     class TestGetRecipeById {
 
         final String mockIngredientName1 = "test ingredient 1";
@@ -68,10 +64,10 @@ public class RecipeControllerTest {
             List<Ingredient> mockIngredients = Arrays.asList( new Ingredient(mockIngredientName1),new Ingredient(mockIngredientName2));
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                     mockInstructions, mockIngredients,  mockCurrentTime);
-            // Setup mocked service
+            // Set up mocked service
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
 
-            mockMvc.perform(get("/recipe/{id}", mockId))
+            mockMvc.perform(get("/recipes/{id}", mockId))
 
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
@@ -92,16 +88,16 @@ public class RecipeControllerTest {
         @Test
         @DisplayName("return 404 error if the recipe is not found")
         void testGetRecipeByIdNotFound() throws Exception {
-            // Setup mocked service
+            // Set up mocked service
             doReturn(Optional.empty()).when(service).findById(1L);
 
-            mockMvc.perform(get("/recipe/{id}", 1))
+            mockMvc.perform(get("/recipes/{id}", 1))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("POST /recipe")
+    @DisplayName("POST /recipes")
     class TestCreateRecipe {
         final String mockIngredientName1 = "test ingredient 1";
         final String mockIngredientName2 = "test ingredient 2";
@@ -131,10 +127,10 @@ public class RecipeControllerTest {
                     mockInstructions,
                     mockIngredients,
                     mockCurrentTime);
-            // Setup mocked service
-            doReturn(mockRecipe).when(service).save(any());
+            // Set up mocked service
+            doReturn(mockRecipe).when(service).create(any());
 
-            mockMvc.perform(post("/recipe")
+            mockMvc.perform(post("/recipes")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(toJsonString(postRecipe)))
 
@@ -163,10 +159,10 @@ public class RecipeControllerTest {
             Recipe postRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
                     mockNumOfServings, mockInstructions, postIngredients);
 
-            // Setup mocked service
-            doReturn(false).when(service).save(any());
+            // Set up mocked service
+            doReturn(false).when(service).create(any());
 
-            mockMvc.perform(post("/recipe")
+            mockMvc.perform(post("/recipes")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(toJsonString(postRecipe)))
                     .andExpect(status().isInternalServerError());
@@ -205,7 +201,7 @@ public class RecipeControllerTest {
                     mockIngredients1,
                     mockCurrentTime);
 
-            List<Ingredient> mockIngredients2 = Arrays.asList(
+            List<Ingredient> mockIngredients2 = List.of(
                     new Ingredient(mockIngredientName3)
             );
 
@@ -219,8 +215,8 @@ public class RecipeControllerTest {
 
             List<Recipe> recipes = Arrays.asList(mockRecipe1,mockRecipe2);
 
-            // Setup mocked service
-            doReturn(recipes).when(service).findAll();
+            // Set up mocked service
+            doReturn(recipes).when(service).search(any());
 
             mockMvc.perform(get("/recipes"))
 
@@ -250,8 +246,8 @@ public class RecipeControllerTest {
         @Test
         @DisplayName("return 200 ok and an empty array if there is no recipe")
         void testGetRecipesEmpty() throws Exception {
-            // Setup mocked service
-            doReturn(Collections.emptyList()).when(service).findAll();
+            // Set up mocked service
+            doReturn(Collections.emptyList()).when(service).search(any());
 
             mockMvc.perform(get("/recipes"))
 
@@ -263,7 +259,89 @@ public class RecipeControllerTest {
     }
 
     @Nested
-    @DisplayName("PATCH /recipe/{id}")
+    @DisplayName("GET /recipes/search")
+    class TestSearchRecipes {
+        final String mockIngredientName1 = "test ingredient 1";
+        final String mockIngredientName2 = "test ingredient 2";
+        final Long mockId = 1L;
+        final String mockRecipeName = "test ingredient 1";
+        final boolean mockIsVegetarian = true;
+        final Short mockNumOfServings = 2;
+        final String mockInstructions = "test 1 instructions";
+
+        List<Ingredient> mockIngredients = Arrays.asList( new Ingredient(mockIngredientName1),new Ingredient(mockIngredientName2));
+        Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
+                mockInstructions, mockIngredients,  mockCurrentTime);
+
+        @Test
+        @DisplayName("return 200 ok if isVegetarian is set")
+        void testSearchRecipeIsVegetarian() throws Exception {
+            // Set up mocked service
+            doReturn(List.of(mockRecipe)).when(service).search(any());
+
+            mockMvc.perform(get("/recipes/search?isVegetarian="+mockIsVegetarian))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("return 200 ok if numOfServings is set")
+        void testSearchRecipeNumOfServings() throws Exception {
+            // Set up mocked service
+            doReturn(List.of(mockRecipe)).when(service).search(any());
+
+            mockMvc.perform(get("/recipes/search?numOfServings="+mockNumOfServings))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("return 200 ok if includedIngredients is set")
+        void testSearchRecipeIncludeIngredients() throws Exception {
+            // Set up mocked service
+            doReturn(List.of(mockRecipe)).when(service).search(any());
+
+            mockMvc.perform(get("/recipes/search?includedIngredients="+mockIngredientName1+","+mockIngredientName2))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("return 200 ok if excludedIngredients is set")
+        void testSearchRecipeExcludeIngredients() throws Exception {
+            // Set up mocked service
+            doReturn(List.of(mockRecipe)).when(service).search(any());
+
+            mockMvc.perform(get("/recipes/search?excludedIngredients="+mockIngredientName1+","+mockIngredientName2))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("return 200 ok if instructionsContain is set")
+        void testSearchRecipeInstructionsContain() throws Exception {
+            // Set up mocked service
+            doReturn(List.of(mockRecipe)).when(service).search(any());
+
+            mockMvc.perform(get("/recipes/search?instructionsContain=test"))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+    }
+
+    @Nested
+    @DisplayName("PATCH /recipes/{id}")
     class TestUpdateRecipe {
         final String mockIngredientName1 = "test ingredient 1";
         final String mockIngredientName2 = "test ingredient 2";
@@ -289,7 +367,7 @@ public class RecipeControllerTest {
                     mockInstructions, mockIngredients,  mockCurrentTime);
 
 
-            // Setup mocked service
+            // Set up mocked service
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
             doReturn(true).when(service).update(any());
 
@@ -320,10 +398,10 @@ public class RecipeControllerTest {
                     new Ingredient(mockIngredientName2));
             Recipe patchRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
                     mockNumOfServings, mockInstructions, patchIngredients);
-            // Setup mocked service
+            // Set up mocked service
             doReturn(Optional.empty()).when(service).findById(mockId);
 
-            mockMvc.perform(patch("/recipe/{id}", mockId)
+            mockMvc.perform(patch("/recipes/{id}", mockId)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(toJsonString(patchRecipe)))
 
@@ -332,7 +410,7 @@ public class RecipeControllerTest {
     }
 
     @Nested
-    @DisplayName("DELETE /recipe/{id}")
+    @DisplayName("DELETE /recipes/{id}")
     class TestDeleteRecipe {
         final String mockIngredientName1 = "test ingredient 1";
         final String mockIngredientName2 = "test ingredient 2";
@@ -349,22 +427,22 @@ public class RecipeControllerTest {
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                     mockInstructions, mockIngredients,  mockCurrentTime);
 
-            // Setup the mocked service
+            // Set up the mocked service
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
-            doReturn(true).when(service).delete(mockId);
+            doNothing().when(service).deleteById(mockId);
 
-            mockMvc.perform(delete("/recipe/{id}", mockId))
+            mockMvc.perform(delete("/recipes/{id}", mockId))
                     .andExpect(status().isOk());
         }
 
         @Test
         @DisplayName("return 404 error if the recipe is not found")
         void testRecipeDeleteNotFound() throws Exception {
-            // Setup the mocked service
+            // Set up the mocked service
             doReturn(Optional.empty()).when(service).findById(mockId);
 
             // Execute our DELETE request
-            mockMvc.perform(delete("/recipe/{id}", mockId))
+            mockMvc.perform(delete("/recipes/{id}", mockId))
                     .andExpect(status().isNotFound());
         }
 
@@ -375,12 +453,12 @@ public class RecipeControllerTest {
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                     mockInstructions, mockIngredients,  mockCurrentTime);
 
-            // Setup the mocked service
+            // Set up the mocked service
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
-            doReturn(false).when(service).delete(mockId);
+            doThrow(new Exception()).when(service).deleteById(any());
 
             // Execute our DELETE request
-            mockMvc.perform(delete("/recipe/{id}", mockId))
+            mockMvc.perform(delete("/recipes/{id}", mockId))
                     .andExpect(status().isInternalServerError());
         }
     }

@@ -1,5 +1,10 @@
 package github.ikhvjs.recipes.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 
@@ -15,6 +20,7 @@ public class Ingredient {
     @Column(name="ingredient_name")
     private String ingredientName;
 
+    @JsonBackReference
     @ManyToOne
     private Recipe recipe;
 

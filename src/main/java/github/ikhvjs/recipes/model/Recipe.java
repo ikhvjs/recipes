@@ -1,5 +1,7 @@
 package github.ikhvjs.recipes.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -28,13 +30,21 @@ public class Recipe {
     @Column(name="num_servings")
     private Short numOfServings;
 
+    @NotEmpty
     @Column(length = 2000)
     private String instructions;
 
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    @Override
+    public String toString() {
+        return "Recipe{" +
+                "recipeName='" + recipeName + '\'' +
+                '}';
+    }
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Ingredient> ingredients = new ArrayList<>();
 
-    @NotNull
     @Column(name="modified_time")
     @UpdateTimestamp
     private LocalDateTime modifiedTime;
