@@ -32,7 +32,6 @@ public class RecipeController {
 
         return ResponseEntity
                 .ok()
-                .location(new URI("/recipe/" + existingRecipe.getId()))
                 .body(existingRecipe);
     }
 
@@ -48,7 +47,7 @@ public class RecipeController {
         Recipe newRecipe = recipeService.create(recipe);
 
         return ResponseEntity
-                .created(new URI("/recipe/" + newRecipe.getId()))
+                .created(new URI("/recipes/" + newRecipe.getId()))
                 .body(newRecipe);
     }
 

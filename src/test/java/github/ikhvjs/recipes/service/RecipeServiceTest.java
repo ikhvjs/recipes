@@ -37,6 +37,9 @@ public class RecipeServiceTest {
     @Nested
     @DisplayName("Test findById")
     class TestFindById {
+
+        final Long mockIngredientId1 = 1L;
+        final Long mockIngredientId2 = 1L;
         final String mockIngredientName1 = "test ingredient 1";
         final String mockIngredientName2 = "test ingredient 2";
         final Long mockId = 1L;
@@ -47,7 +50,9 @@ public class RecipeServiceTest {
         @Test
         @DisplayName("Success if id is found")
         void testFindByIdSuccess() {
-            List<Ingredient> mockIngredients = Arrays.asList( new Ingredient(mockIngredientName1),new Ingredient(mockIngredientName2));
+            List<Ingredient> mockIngredients = Arrays.asList(
+                    new Ingredient(mockIngredientId1, mockIngredientName1),
+                    new Ingredient(mockIngredientId2, mockIngredientName2));
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                     mockInstructions, mockIngredients,  mockCurrentTime);
             // Setup mock repository

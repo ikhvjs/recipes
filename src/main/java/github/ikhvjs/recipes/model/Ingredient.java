@@ -1,9 +1,6 @@
 package github.ikhvjs.recipes.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -29,6 +26,10 @@ public class Ingredient {
     }
 
     public Ingredient(String ingredientName) {
+        this.ingredientName = ingredientName;
+    }
+    public Ingredient(Long id, String ingredientName) {
+        this.id = id;
         this.ingredientName = ingredientName;
     }
 
