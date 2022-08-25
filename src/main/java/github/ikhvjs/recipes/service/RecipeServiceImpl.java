@@ -1,7 +1,7 @@
 package github.ikhvjs.recipes.service;
 
 import github.ikhvjs.recipes.model.Recipe;
-import github.ikhvjs.recipes.model.QueryString;
+import github.ikhvjs.recipes.controller.QueryString;
 import github.ikhvjs.recipes.repository.IngredientRepository;
 import github.ikhvjs.recipes.repository.RecipeRepository;
 import org.apache.logging.log4j.LogManager;

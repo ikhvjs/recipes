@@ -1,4 +1,6 @@
-package github.ikhvjs.recipes.model;
+package github.ikhvjs.recipes.controller;
+
+import github.ikhvjs.recipes.model.Ingredient;
 
 import java.util.List;
 

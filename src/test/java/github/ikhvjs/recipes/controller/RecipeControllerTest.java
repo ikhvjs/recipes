@@ -89,10 +89,21 @@ public class RecipeControllerTest {
         @DisplayName("return 404 error if the recipe is not found")
         void testGetRecipeByIdNotFound() throws Exception {
             // Set up mocked service
-            doReturn(Optional.empty()).when(service).findById(1L);
+            doReturn(Optional.empty()).when(service).findById(mockId);
 
-            mockMvc.perform(get("/recipes/{id}", 1))
+            mockMvc.perform(get("/recipes/{id}", mockId))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("return 500 error if retrieval of recipe failed")
+        void testGetRecipeFail() throws Exception {
+            // Set up mocked service
+            doThrow(new RuntimeException()).when(service).findById(mockId);
+
+            // Execute our DELETE request
+            mockMvc.perform(get("/recipes/{id}", mockId))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
@@ -107,26 +118,28 @@ public class RecipeControllerTest {
         final Short mockNumOfServings = 2;
         final String mockInstructions = "test 1 instructions";
 
+        List<Ingredient> postIngredients = Arrays.asList( new Ingredient(mockIngredientName1),
+                new Ingredient(mockIngredientName2));
+        Recipe postRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
+                mockNumOfServings, mockInstructions, postIngredients);
+
+        List<Ingredient> mockIngredients = Arrays.asList(
+                new Ingredient(mockIngredientName1),
+                new Ingredient(mockIngredientName2));
+
+        Recipe mockRecipe = new Recipe(mockId,
+                mockRecipeName,
+                mockIsVegetarian,
+                mockNumOfServings,
+                mockInstructions,
+                mockIngredients,
+                mockCurrentTime);
+
         @Test
-        @DisplayName("return 200 ok and the recipe if the creation is successful")
+        @DisplayName("return 200 ok and the recipe if the creation succeeded")
         void testCreateRecipeSuccess() throws Exception {
 
-            List<Ingredient> postIngredients = Arrays.asList( new Ingredient(mockIngredientName1),
-                    new Ingredient(mockIngredientName2));
-            Recipe postRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
-                    mockNumOfServings, mockInstructions, postIngredients);
 
-            List<Ingredient> mockIngredients = Arrays.asList(
-                    new Ingredient(mockIngredientName1),
-                    new Ingredient(mockIngredientName2));
-
-            Recipe mockRecipe = new Recipe(mockId,
-                    mockRecipeName,
-                    mockIsVegetarian,
-                    mockNumOfServings,
-                    mockInstructions,
-                    mockIngredients,
-                    mockCurrentTime);
             // Set up mocked service
             doReturn(mockRecipe).when(service).create(any());
 
@@ -151,7 +164,7 @@ public class RecipeControllerTest {
         }
 
         @Test
-        @DisplayName("return 500 Error if the creation is not executed successfully")
+        @DisplayName("return 500 Error if the creation failed")
         void testCreateRecipeBadRequest() throws Exception {
 
             List<Ingredient> postIngredients = Arrays.asList( new Ingredient(mockIngredientName1),
@@ -160,11 +173,13 @@ public class RecipeControllerTest {
                     mockNumOfServings, mockInstructions, postIngredients);
 
             // Set up mocked service
-            doReturn(false).when(service).create(any());
+            doReturn(mockRecipe).when(service).create(any());
+            doThrow(new RuntimeException()).when(service).create(any());
 
             mockMvc.perform(post("/recipes")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(toJsonString(postRecipe)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(toJsonString(postRecipe)))
+
                     .andExpect(status().isInternalServerError());
         }
     }
@@ -186,43 +201,46 @@ public class RecipeControllerTest {
         final Short mockNumOfServings2 = 3;
         final String mockInstructions2 = "test 2 instructions";
 
+        List<Ingredient> mockIngredients1 = Arrays.asList(
+                new Ingredient(mockIngredientName1),
+                new Ingredient(mockIngredientName2));
+
+        Recipe mockRecipe1 = new Recipe(mockId1,
+                mockRecipeName1,
+                mockIsVegetarian1,
+                mockNumOfServings1,
+                mockInstructions1,
+                mockIngredients1,
+                mockCurrentTime);
+
+        List<Ingredient> mockIngredients2 = List.of(
+                new Ingredient(mockIngredientName3)
+        );
+
+        Recipe mockRecipe2 = new Recipe(mockId2,
+                mockRecipeName2,
+                mockIsVegetarian2,
+                mockNumOfServings2,
+                mockInstructions2,
+                mockIngredients2,
+                mockCurrentTime);
+
+        List<Recipe> mockRecipes = Arrays.asList(mockRecipe1,mockRecipe2);
+
+
         @Test
         @DisplayName("return 200 ok and the recipes if there is any recipe")
         void testGetRecipesSuccess() throws Exception {
-            List<Ingredient> mockIngredients1 = Arrays.asList(
-                    new Ingredient(mockIngredientName1),
-                    new Ingredient(mockIngredientName2));
 
-            Recipe mockRecipe1 = new Recipe(mockId1,
-                    mockRecipeName1,
-                    mockIsVegetarian1,
-                    mockNumOfServings1,
-                    mockInstructions1,
-                    mockIngredients1,
-                    mockCurrentTime);
-
-            List<Ingredient> mockIngredients2 = List.of(
-                    new Ingredient(mockIngredientName3)
-            );
-
-            Recipe mockRecipe2 = new Recipe(mockId2,
-                    mockRecipeName2,
-                    mockIsVegetarian2,
-                    mockNumOfServings2,
-                    mockInstructions2,
-                    mockIngredients2,
-                    mockCurrentTime);
-
-            List<Recipe> recipes = Arrays.asList(mockRecipe1,mockRecipe2);
 
             // Set up mocked service
-            doReturn(recipes).when(service).search(any());
+            doReturn(mockRecipes).when(service).search(any());
 
             mockMvc.perform(get("/recipes"))
 
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-
+                    .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[0].id", is(mockId1.intValue())))
                     .andExpect(jsonPath("$[0].recipeName", is(mockRecipeName1)))
@@ -253,8 +271,96 @@ public class RecipeControllerTest {
 
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-
+                    .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$", hasSize(0)));
+        }
+
+        @Test
+        @DisplayName("return 200 ok if isVegetarian is set")
+        void testSearchRecipeIsVegetarian() throws Exception {
+            // Set up mocked service
+            doReturn(mockRecipes).when(service).search(any());
+
+            mockMvc.perform(get("/recipes?isVegetarian="+mockIsVegetarian1))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$").isArray());
+        }
+
+        @Test
+        @DisplayName("return 200 ok if numOfServings is set")
+        void testSearchRecipeNumOfServings() throws Exception {
+            // Set up mocked service
+            doReturn(mockRecipes).when(service).search(any());
+
+            mockMvc.perform(get("/recipes?numOfServings="+mockNumOfServings1))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$").isArray());
+        }
+
+        @Test
+        @DisplayName("return 200 ok if includedIngredients is set")
+        void testSearchRecipeIncludeIngredients() throws Exception {
+            // Set up mocked service
+            doReturn(mockRecipes).when(service).search(any());
+
+            mockMvc.perform(get("/recipes?includedIngredients="+mockIngredientName1+","+mockIngredientName2))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$").isArray());
+        }
+
+        @Test
+        @DisplayName("return 200 ok if excludedIngredients is set")
+        void testSearchRecipeExcludeIngredients() throws Exception {
+            // Set up mocked service
+            doReturn(mockRecipes).when(service).search(any());
+
+            mockMvc.perform(get("/recipes?excludedIngredients="+mockIngredientName1+","+mockIngredientName2))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$").isArray());
+        }
+
+        @Test
+        @DisplayName("return 200 ok if instructionsContain is set")
+        void testSearchRecipeInstructionsContain() throws Exception {
+            // Set up mocked service
+            doReturn(mockRecipes).when(service).search(any());
+
+            mockMvc.perform(get("/recipes?instructionsContain=test"))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$").isArray());
+        }
+
+        @Test
+        @DisplayName("return 200 ok if unexpected query string is set")
+        void testSearchRecipeUnknownQueryString() throws Exception {
+            // Set up mocked service
+            doReturn(mockRecipes).when(service).search(any());
+
+            mockMvc.perform(get("/recipes?unknownQueryString=test"))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$").isArray());
+        }
+
+        @Test
+        @DisplayName("return 500 error if retrieval of recipe failed")
+        void testGetRecipesFail() throws Exception {
+            // Set up mocked service
+            doThrow(new RuntimeException()).when(service).search(any());
+
+            mockMvc.perform(get("/recipes"))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
@@ -273,70 +379,7 @@ public class RecipeControllerTest {
         Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                 mockInstructions, mockIngredients,  mockCurrentTime);
 
-        @Test
-        @DisplayName("return 200 ok if isVegetarian is set")
-        void testSearchRecipeIsVegetarian() throws Exception {
-            // Set up mocked service
-            doReturn(List.of(mockRecipe)).when(service).search(any());
 
-            mockMvc.perform(get("/recipes/search?isVegetarian="+mockIsVegetarian))
-
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(jsonPath("$", hasSize(1)));
-        }
-
-        @Test
-        @DisplayName("return 200 ok if numOfServings is set")
-        void testSearchRecipeNumOfServings() throws Exception {
-            // Set up mocked service
-            doReturn(List.of(mockRecipe)).when(service).search(any());
-
-            mockMvc.perform(get("/recipes/search?numOfServings="+mockNumOfServings))
-
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(jsonPath("$", hasSize(1)));
-        }
-
-        @Test
-        @DisplayName("return 200 ok if includedIngredients is set")
-        void testSearchRecipeIncludeIngredients() throws Exception {
-            // Set up mocked service
-            doReturn(List.of(mockRecipe)).when(service).search(any());
-
-            mockMvc.perform(get("/recipes/search?includedIngredients="+mockIngredientName1+","+mockIngredientName2))
-
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(jsonPath("$", hasSize(1)));
-        }
-
-        @Test
-        @DisplayName("return 200 ok if excludedIngredients is set")
-        void testSearchRecipeExcludeIngredients() throws Exception {
-            // Set up mocked service
-            doReturn(List.of(mockRecipe)).when(service).search(any());
-
-            mockMvc.perform(get("/recipes/search?excludedIngredients="+mockIngredientName1+","+mockIngredientName2))
-
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(jsonPath("$", hasSize(1)));
-        }
-
-        @Test
-        @DisplayName("return 200 ok if instructionsContain is set")
-        void testSearchRecipeInstructionsContain() throws Exception {
-            // Set up mocked service
-            doReturn(List.of(mockRecipe)).when(service).search(any());
-
-            mockMvc.perform(get("/recipes/search?instructionsContain=test"))
-
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(jsonPath("$", hasSize(1)));
-        }
 
     }
 
@@ -351,27 +394,29 @@ public class RecipeControllerTest {
         final Short mockNumOfServings = 2;
         final String mockInstructions = "test 1 instructions";
 
-        @Test
-        @DisplayName("return 200 ok and the updated recipes if update successfully")
-        void testUpdateRecipesSuccess() throws Exception {
-            List<Ingredient> patchIngredients = Arrays.asList(
-                    new Ingredient(mockIngredientName1),
-                    new Ingredient(mockIngredientName2));
-            Recipe patchRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
-                    mockNumOfServings, mockInstructions, patchIngredients);
+        List<Ingredient> patchIngredients = Arrays.asList(
+                new Ingredient(mockIngredientName1),
+                new Ingredient(mockIngredientName2));
+        Recipe patchRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
+                mockNumOfServings, mockInstructions, patchIngredients);
 
-            List<Ingredient> mockIngredients = Arrays.asList(
-                    new Ingredient(mockIngredientName1),
-                    new Ingredient(mockIngredientName2));
-            Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
-                    mockInstructions, mockIngredients,  mockCurrentTime);
+        List<Ingredient> mockIngredients = Arrays.asList(
+                new Ingredient(mockIngredientName1),
+                new Ingredient(mockIngredientName2));
+        Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
+                mockInstructions, mockIngredients,  mockCurrentTime);
+
+        @Test
+        @DisplayName("return 200 ok and the updated recipes if the update succeeded")
+        void testUpdateRecipesSuccess() throws Exception {
+
 
 
             // Set up mocked service
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
-            doReturn(true).when(service).update(any());
+            doReturn(mockRecipe).when(service).update(any());
 
-            mockMvc.perform(patch("/recipe/{id}", mockId)
+            mockMvc.perform(patch("/recipes/{id}", mockId)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(toJsonString(patchRecipe)))
 
@@ -390,22 +435,31 @@ public class RecipeControllerTest {
         }
 
         @Test
-        @DisplayName("return 404 error if the recipe is not found")
+        @DisplayName("return 404 error if the recipe was not found")
         void testRecipePatchNotFound() throws Exception {
 
-            List<Ingredient> patchIngredients = Arrays.asList(
-                    new Ingredient(mockIngredientName1),
-                    new Ingredient(mockIngredientName2));
-            Recipe patchRecipe = new Recipe( mockRecipeName, mockIsVegetarian,
-                    mockNumOfServings, mockInstructions, patchIngredients);
             // Set up mocked service
             doReturn(Optional.empty()).when(service).findById(mockId);
+            doReturn(mockRecipe).when(service).update(any());
 
             mockMvc.perform(patch("/recipes/{id}", mockId)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(toJsonString(patchRecipe)))
 
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("return 500 error if the update failed")
+        void testProductDeleteFailure() throws Exception {
+
+            // Set up the mocked service
+            doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
+            doThrow(new RuntimeException()).when(service).update(any());
+
+            // Execute our DELETE request
+            mockMvc.perform(patch("/recipes/{id}", mockId))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
@@ -421,7 +475,7 @@ public class RecipeControllerTest {
         final String mockInstructions = "test 1 instructions";
 
         @Test
-        @DisplayName("return 200 ok if the recipe is deleted successfully")
+        @DisplayName("return 200 ok if deletion succeeded")
         void testRecipeDeleteSuccess() throws Exception {
             List<Ingredient> mockIngredients = Arrays.asList( new Ingredient(mockIngredientName1),new Ingredient(mockIngredientName2));
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
@@ -436,7 +490,7 @@ public class RecipeControllerTest {
         }
 
         @Test
-        @DisplayName("return 404 error if the recipe is not found")
+        @DisplayName("return 404 error if the recipe was not found")
         void testRecipeDeleteNotFound() throws Exception {
             // Set up the mocked service
             doReturn(Optional.empty()).when(service).findById(mockId);
@@ -447,7 +501,7 @@ public class RecipeControllerTest {
         }
 
         @Test
-        @DisplayName("return 500 error if the deletion fail")
+        @DisplayName("return 500 error if the deletion failed")
         void testProductDeleteFailure() throws Exception {
             List<Ingredient> mockIngredients = Arrays.asList( new Ingredient(mockIngredientName1),new Ingredient(mockIngredientName2));
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
@@ -455,7 +509,7 @@ public class RecipeControllerTest {
 
             // Set up the mocked service
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockId);
-            doThrow(new Exception()).when(service).deleteById(any());
+            doThrow(new RuntimeException()).when(service).deleteById(any());
 
             // Execute our DELETE request
             mockMvc.perform(delete("/recipes/{id}", mockId))

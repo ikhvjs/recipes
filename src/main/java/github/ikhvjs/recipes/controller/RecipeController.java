@@ -2,7 +2,6 @@ package github.ikhvjs.recipes.controller;
 
 import github.ikhvjs.recipes.exception.ResourceNotFoundException;
 import github.ikhvjs.recipes.model.Recipe;
-import github.ikhvjs.recipes.model.QueryString;
 import github.ikhvjs.recipes.service.RecipeService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
