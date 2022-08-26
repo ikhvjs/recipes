@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,10 +24,8 @@ import java.util.Optional;
 import static github.ikhvjs.recipes.controller.JsonConverter.toJsonString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -178,7 +175,7 @@ public class IngredientControllerTest {
 
         Ingredient mockIngredient = new Ingredient(mockIngredientId, mockIngredientName);
         Ingredient postIngredient = new Ingredient(mockIngredientName);
-        List<Ingredient> mockIngredients = Collections.<Ingredient>emptyList();
+        List<Ingredient> mockIngredients = Collections.emptyList();
 
         Recipe mockRecipe = new Recipe(mockRecipeId,
                 mockRecipeName,
@@ -234,71 +231,124 @@ public class IngredientControllerTest {
     @Nested
     @DisplayName("PATCH /ingredients/{id}")
     class TestUpdateRecipeIngredient {
+        final Long mockIngredientId = 1L;
+        final String mockIngredientName = "test ingredient 1";
+        final Ingredient mockIngredient = new Ingredient(mockIngredientId, mockIngredientName);
+
+        final Ingredient patchIngredient = new Ingredient(mockIngredientId, mockIngredientName);
         @Test
         @DisplayName("return 200 ok if the update succeeded")
         void testRecipeIngredientUpdateSuccess() throws Exception {
-            assertEquals(1,2);
-        }
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doReturn(mockIngredient).when(ingredientService).update(any());
 
-        @Test
-        @DisplayName("return 404 error if the recipe is not found")
-        void testRecipeIngredientUpdateRecipeNotFound() throws Exception {
-            assertEquals(1,2);
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchIngredient)))
+
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+
+                    .andExpect(jsonPath("$.id", is(mockIngredientId.intValue())))
+                    .andExpect(jsonPath("$.ingredientName", is(mockIngredientName)));
         }
 
         @Test
         @DisplayName("return 404 error if the ingredient is not found")
-        void testRecipeIngredientUpdateIngredientNotFound() throws Exception {
-            assertEquals(1,2);
+        void testRecipeIngredientUpdateRecipeNotFound() throws Exception {
+            doReturn(Optional.empty()).when(ingredientService).findById(mockIngredientId);
+            doReturn(mockIngredient).when(ingredientService).update(any());
+
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchIngredient)))
+
+                    .andExpect(status().isNotFound());
         }
+
         @Test
         @DisplayName("return 500 error if the update failed")
         void testRecipeIngredientUpdateFailure() throws Exception {
-            assertEquals(1,2);
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doThrow(new RuntimeException()).when(ingredientService).update(any());
+
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
     @Nested
     @DisplayName("DELETE /ingredients/{id}")
     class TestDeleteIngredient {
+
+        final Long mockIngredientId = 1L;
+        final String mockIngredientName = "test ingredient 1";
+        final Ingredient mockIngredient = new Ingredient(mockIngredientId, mockIngredientName);
+
+
         @Test
         @DisplayName("return 200 ok if the deletion succeeded")
         void testIngredientDeleteSuccess() throws Exception {
-            assertEquals(1,2);
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doNothing().when(ingredientService).deleteById(mockIngredientId);
+
+            mockMvc.perform(delete("/ingredients/{id}", mockIngredientId))
+                    .andExpect(status().isOk());
         }
 
         @Test
         @DisplayName("return 404 error if the ingredient is not found")
         void testIngredientDeleteNotFound() throws Exception {
-            assertEquals(1,2);
+            doReturn(Optional.empty()).when(ingredientService).findById(mockIngredientId);
+
+            mockMvc.perform(delete("/ingredients/{id}", mockIngredientId))
+                    .andExpect(status().isNotFound());
         }
 
         @Test
         @DisplayName("return 500 error if the deletion failed")
         void testIngredientDeleteFailure() throws Exception {
-            assertEquals(1,2);
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doThrow(new RuntimeException()).when(ingredientService).deleteById(any());
+
+            mockMvc.perform(delete("/ingredients/{id}", mockIngredientId))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
     @Nested
     @DisplayName("DELETE /recipes/{id}/ingredients")
     class TestDeleteRecipeIngredient {
+
+        final Long mockRecipeId = 1L;
         @Test
         @DisplayName("return 200 ok if the deletion succeeded")
-        void testRecipeIngredientDeleteSuccess() throws Exception {
-            assertEquals(1,2);
+        void testRecipeIngredientsDeleteSuccess() throws Exception {
+            doReturn(true).when(recipeService).existsById(mockRecipeId);
+            doNothing().when(ingredientService).deleteByRecipeId(mockRecipeId);
+
+            mockMvc.perform(delete("/recipes/{id}/ingredients", mockRecipeId))
+                    .andExpect(status().isOk());
         }
 
         @Test
         @DisplayName("return 404 error if the recipe is not found")
-        void testRecipeIngredientDeleteRecipeNotFound() throws Exception {
-            assertEquals(1,2);
+        void testRecipeIngredientsDeleteRecipeNotFound() throws Exception {
+            doReturn(false).when(recipeService).existsById(mockRecipeId);
+            doNothing().when(ingredientService).deleteByRecipeId(mockRecipeId);
+
+            mockMvc.perform(delete("/recipes/{id}/ingredients", mockRecipeId))
+                    .andExpect(status().isNotFound());
         }
 
         @Test
         @DisplayName("return 500 error if the deletion failed")
-        void testRecipeIngredientDeleteFailure() throws Exception {
-            assertEquals(1,2);
+        void testRecipeIngredientsDeleteFailure() throws Exception {
+            doReturn(true).when(recipeService).existsById(mockRecipeId);
+            doThrow(new RuntimeException()).when(ingredientService).deleteByRecipeId(mockRecipeId);
+
+            mockMvc.perform(delete("/recipes/{id}/ingredients", mockRecipeId))
+                    .andExpect(status().isInternalServerError());
         }
     }
 

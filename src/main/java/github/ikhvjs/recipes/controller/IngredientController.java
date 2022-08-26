@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -52,7 +53,7 @@ public class IngredientController {
 
     @PostMapping("/recipes/{id}/ingredients")
     public ResponseEntity<Ingredient> createRecipeIngredient(@PathVariable Long id,
-                                                 @RequestBody Ingredient ingredient) throws Exception {
+                                                 @RequestBody Ingredient ingredient) throws URISyntaxException {
         Recipe recipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));
@@ -63,5 +64,40 @@ public class IngredientController {
         return ResponseEntity
                 .created(new URI("/ingredients/" + newIngredient.getId()))
                 .body(newIngredient);
+    }
+
+    @PatchMapping("/ingredients/{id}")
+    public ResponseEntity<Ingredient> updateIngredient(@PathVariable long id, @Valid @RequestBody Ingredient ingredient) {
+        Ingredient existingIngredient = ingredientService
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Not found Ingredient with id = " + id));
+
+        existingIngredient.setIngredientName(ingredient.getIngredientName());
+
+        return ResponseEntity
+                .ok()
+                .body(ingredientService.update(existingIngredient));
+    }
+
+    @DeleteMapping("/ingredients/{id}")
+    public ResponseEntity<HttpStatus> deleteIngredient(@PathVariable long id) {
+        Ingredient existingIngredient = ingredientService
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Not found Ingredient with id = " + id));;
+
+        ingredientService.deleteById(existingIngredient.getId());
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/recipes/{id}/ingredients")
+    public ResponseEntity<HttpStatus> deleteRecipeIngredients(@PathVariable Long id)  {
+        if (!recipeService.existsById(id)) {
+            throw new ResourceNotFoundException("Not found Recipe with id = " + id);
+        }
+
+        ingredientService.deleteByRecipeId(id);
+
+        return ResponseEntity.ok().build();
     }
 }

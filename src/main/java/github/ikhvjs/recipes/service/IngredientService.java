@@ -1,8 +1,6 @@
 package github.ikhvjs.recipes.service;
 
-import github.ikhvjs.recipes.controller.QueryString;
 import github.ikhvjs.recipes.model.Ingredient;
-import github.ikhvjs.recipes.model.Recipe;
 
 import java.util.List;
 import java.util.Optional;

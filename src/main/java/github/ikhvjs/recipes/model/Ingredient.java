@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "ingredients",
@@ -14,6 +15,7 @@ public class Ingredient {
     private Long id;
 
     @NotEmpty
+    @Size(max = 100, message = "size must be between 1 and 100")
     @Column(name="ingredient_name")
     private String ingredientName;
 

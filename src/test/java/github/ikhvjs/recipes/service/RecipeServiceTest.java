@@ -55,13 +55,13 @@ public class RecipeServiceTest {
                     new Ingredient(mockIngredientId2, mockIngredientName2));
             Recipe mockRecipe = new Recipe(mockId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                     mockInstructions, mockIngredients,  mockCurrentTime);
-            // Setup mock repository
+
             doReturn(Optional.of(mockRecipe)).when(repository).findById(mockId);
 
 
             Optional<Recipe> returnedRecipe = service.findById(mockId);
 
-            // Assert the response
+
             Assertions.assertTrue(returnedRecipe.isPresent(), "Recipe was not found");
             Assertions.assertSame(returnedRecipe.get(), mockRecipe, "Recipes should be the same");
         }
@@ -69,12 +69,12 @@ public class RecipeServiceTest {
         @Test
         @DisplayName("Fail if id is not found")
         void testFindByIdNotFound() {
-            // Setup mock repository
+
             doReturn(Optional.empty()).when(repository).findById(mockId);
 
             Optional<Recipe> returnedRecipe = service.findById(mockId);
 
-            // Assert the response
+
             Assertions.assertFalse(returnedRecipe.isPresent(), "Recipe was found, when it shouldn't be");
         }
 

@@ -25,7 +25,7 @@ public class RecipeController {
     }
 
     @GetMapping("/recipes/{id}")
-    public ResponseEntity<?> getRecipe(@PathVariable Long id) throws URISyntaxException {
+    public ResponseEntity<?> getRecipe(@PathVariable Long id) {
         Recipe existingRecipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));

@@ -1,12 +1,13 @@
 package github.ikhvjs.recipes.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.hibernate.annotations.CreationTimestamp;
+import github.ikhvjs.recipes.annotation.UniqueRecipeName;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,8 @@ public class Recipe {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotEmpty
+    @Size(max = 100, message = "size must be between 1 and 100")
+    @UniqueRecipeName
     @Column(name="recipe_name", unique = true)
     private String recipeName;
 
@@ -31,6 +34,7 @@ public class Recipe {
     private Short numOfServings;
 
     @NotEmpty
+    @Size(max = 2000, message = "size must be between 1 and 2000")
     @Column(length = 2000)
     private String instructions;
 
