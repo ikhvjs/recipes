@@ -3,6 +3,7 @@ package github.ikhvjs.recipes.exception;
 import github.ikhvjs.recipes.service.RecipeServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.BindException;
@@ -72,7 +73,10 @@ public class ControllerExceptionHandler {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ErrorMessage bindExceptionHandler(BindException e, WebRequest request) {
         logger.debug("bindExceptionHandler");
-        List<String> messages = e.getAllErrors().stream().map(err->err.getDefaultMessage()).collect(Collectors.toList());
+        List<String> messages = e.getAllErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.toList());
 
         return new ErrorMessage(
                 HttpStatus.BAD_REQUEST.value(),

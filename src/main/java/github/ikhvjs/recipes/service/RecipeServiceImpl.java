@@ -45,8 +45,8 @@ public class RecipeServiceImpl implements RecipeService{
     public List<Recipe> search(QueryString queryString) {
         logger.debug("Search recipes with query string {}",queryString);
 
-        final Boolean isVegetarian = queryString.getIsVegetarian();
-        final Short numOfServings = queryString.getNumOfServings();
+        final Boolean isVegetarian = queryString.getIsVegetarian() == null ? null : Boolean.valueOf(queryString.getIsVegetarian());
+        final Short numOfServings = queryString.getNumOfServings() == null ? null : Short.valueOf(queryString.getNumOfServings());
         final String instructions = queryString.getInstructionsContains();
         final List<String> includeIngredients = queryString.getIncludeIngredients();
         final List<String> excludeIngredients = queryString.getExcludeIngredients();
@@ -58,8 +58,7 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
         if(!messages.isEmpty()){
-
-//            throw new InvalidSearchParamsException(messages);
+            throw new InvalidSearchParamsException(messages);
         }
 
         Specification<Recipe> specification = Specification

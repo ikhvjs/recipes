@@ -6,16 +6,16 @@ import javax.validation.constraints.*;
 import java.util.List;
 
 public class QueryString {
-
-    private Boolean isVegetarian;
-    @Range(min = 1, max = 100, message = "numOfServings : range must be between 1 and 100")
-    private Short numOfServings;
+    @Pattern(regexp = "^true$|^false$", message = "isVegetarian : must be true or false")
+    private String isVegetarian;
+    @Pattern(regexp = "^[1-9][0-9]?$|^100$", message = "numOfServings : range must be between 1 and 100")
+    private String numOfServings;
 
     private List<@Size(min = 1, max = 100, message = "includeIngredients : size must be between 1 and 100") String>  includeIngredients;
 
-    private List<@Size(min = 1, max = 100, message = "includeIngredients : size must be between 1 and 100") String> excludeIngredients;
+    private List<@Size(min = 1, max = 100, message = "excludeIngredients : size must be between 1 and 100") String> excludeIngredients;
 
-    @Size(max = 100, message = "instructionsContains : size must between 0 and 100")
+    @Size(min = 1, max = 2000, message = "instructionsContains : size must between 1 and 2000")
     private String instructionsContains;
 
     public QueryString(){}
@@ -31,7 +31,7 @@ public class QueryString {
                 '}';
     }
 
-    public QueryString(Boolean isVegetarian, Short numOfServings, List<String> includeIngredients, List<String> excludeIngredients, String instructionsContains) {
+    public QueryString(String isVegetarian, String numOfServings, List<String> includeIngredients, List<String> excludeIngredients, String instructionsContains) {
         this.isVegetarian = isVegetarian;
         this.numOfServings = numOfServings;
         this.includeIngredients = includeIngredients;
@@ -39,19 +39,19 @@ public class QueryString {
         this.instructionsContains = instructionsContains;
     }
 
-    public Boolean getIsVegetarian() {
+    public String getIsVegetarian() {
         return isVegetarian;
     }
 
-    public void setIsVegetarian(Boolean isVegetarian) {
+    public void setIsVegetarian(String isVegetarian) {
         this.isVegetarian = isVegetarian;
     }
 
-    public Short getNumOfServings() {
+    public String getNumOfServings() {
         return numOfServings;
     }
 
-    public void setNumOfServings(Short numOfServings) {
+    public void setNumOfServings(String numOfServings) {
         this.numOfServings = numOfServings;
     }
 
