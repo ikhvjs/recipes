@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -53,7 +54,7 @@ public class IngredientController {
 
     @PostMapping("/recipes/{id}/ingredients")
     public ResponseEntity<Ingredient> createRecipeIngredient(@PathVariable Long id,
-                                                 @RequestBody Ingredient ingredient) throws URISyntaxException {
+                                                 @Valid @RequestBody Ingredient ingredient) throws URISyntaxException {
         Recipe recipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));

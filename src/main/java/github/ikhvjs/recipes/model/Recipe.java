@@ -3,6 +3,7 @@ package github.ikhvjs.recipes.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import github.ikhvjs.recipes.annotation.UniqueRecipeName;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.validator.constraints.Range;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -30,6 +31,7 @@ public class Recipe {
     private Boolean isVegetarian;
 
     @NotNull
+    @Range(min = 1, max = 100, message = "range must be between 1 and 100")
     @Column(name="num_servings")
     private Short numOfServings;
 
@@ -46,7 +48,7 @@ public class Recipe {
     }
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Ingredient> ingredients = new ArrayList<>();
 
     @Column(name="modified_time")

@@ -1,43 +1,50 @@
 package github.ikhvjs.recipes.controller;
 
-import github.ikhvjs.recipes.model.Ingredient;
+import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.*;
 import java.util.List;
 
 public class QueryString {
-    private boolean isVegetarian;
+
+    private Boolean isVegetarian;
+    @Range(min = 1, max = 100, message = "numOfServings : range must be between 1 and 100")
     private Short numOfServings;
-    private List<Ingredient> includeIngredients;
-    private List<Ingredient> excludeIngredients;
-    private String instructionsContain;
+
+    private List<@Size(min = 1, max = 100, message = "includeIngredients : size must be between 1 and 100") String>  includeIngredients;
+
+    private List<@Size(min = 1, max = 100, message = "includeIngredients : size must be between 1 and 100") String> excludeIngredients;
+
+    @Size(max = 100, message = "instructionsContains : size must between 0 and 100")
+    private String instructionsContains;
 
     public QueryString(){}
 
     @Override
     public String toString() {
-        return "RequestParams{" +
+        return "QueryString{" +
                 "isVegetarian=" + isVegetarian +
                 ", numOfServings=" + numOfServings +
                 ", includeIngredients=" + includeIngredients +
                 ", excludeIngredients=" + excludeIngredients +
-                ", instructionsContain='" + instructionsContain + '\'' +
+                ", instructionsContains='" + instructionsContains + '\'' +
                 '}';
     }
 
-    public QueryString(boolean isVegetarian, Short numOfServings, List<Ingredient> includeIngredients, List<Ingredient> excludeIngredients, String instructionsContain) {
+    public QueryString(Boolean isVegetarian, Short numOfServings, List<String> includeIngredients, List<String> excludeIngredients, String instructionsContains) {
         this.isVegetarian = isVegetarian;
         this.numOfServings = numOfServings;
         this.includeIngredients = includeIngredients;
         this.excludeIngredients = excludeIngredients;
-        this.instructionsContain = instructionsContain;
+        this.instructionsContains = instructionsContains;
     }
 
-    public boolean isVegetarian() {
+    public Boolean getIsVegetarian() {
         return isVegetarian;
     }
 
-    public void setVegetarian(boolean vegetarian) {
-        isVegetarian = vegetarian;
+    public void setIsVegetarian(Boolean isVegetarian) {
+        this.isVegetarian = isVegetarian;
     }
 
     public Short getNumOfServings() {
@@ -48,27 +55,27 @@ public class QueryString {
         this.numOfServings = numOfServings;
     }
 
-    public List<Ingredient> getIncludeIngredients() {
+    public List<String> getIncludeIngredients() {
         return includeIngredients;
     }
 
-    public void setIncludeIngredients(List<Ingredient> includeIngredients) {
+    public void setIncludeIngredients(List<String> includeIngredients) {
         this.includeIngredients = includeIngredients;
     }
 
-    public List<Ingredient> getExcludeIngredients() {
+    public List<String> getExcludeIngredients() {
         return excludeIngredients;
     }
 
-    public void setExcludeIngredients(List<Ingredient> excludeIngredients) {
+    public void setExcludeIngredients(List<String> excludeIngredients) {
         this.excludeIngredients = excludeIngredients;
     }
 
-    public String getInstructionsContain() {
-        return instructionsContain;
+    public String getInstructionsContains() {
+        return instructionsContains;
     }
 
-    public void setInstructionsContain(String instructionsContain) {
-        this.instructionsContain = instructionsContain;
+    public void setInstructionsContains(String instructionsContains) {
+        this.instructionsContains = instructionsContains;
     }
 }
