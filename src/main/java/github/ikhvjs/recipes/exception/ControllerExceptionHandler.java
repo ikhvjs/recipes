@@ -97,17 +97,23 @@ public class ControllerExceptionHandler {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ErrorMessage httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException e, WebRequest request) {
         logger.debug("httpMessageNotReadableExceptionHandler");
-        String message = "Bad request data";
+        String message = e.getMessage();
         Throwable throwable = e.getRootCause();
 
-        if(e.getRootCause() instanceof InvalidFormatException){
-
+        if(throwable instanceof InvalidFormatException){
+            return new ErrorMessage(
+                    HttpStatus.BAD_REQUEST.value(),
+                    LocalDateTime.now(),
+                    List.of(Optional.ofNullable(throwable.getMessage())
+                            .orElse("Bad Request Data")),
+                    request.getDescription(false));
         }
 
         return new ErrorMessage(
                 HttpStatus.BAD_REQUEST.value(),
                 LocalDateTime.now(),
-                List.of(message),
+                List.of(Optional.ofNullable(message)
+                        .orElse("Bad Request Data")),
                 request.getDescription(false));
     }
 

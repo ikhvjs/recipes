@@ -3,7 +3,6 @@ package github.ikhvjs.recipes.controller;
 import github.ikhvjs.recipes.model.Ingredient;
 import github.ikhvjs.recipes.model.Recipe;
 import github.ikhvjs.recipes.service.RecipeService;
-import org.aspectj.lang.annotation.After;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -19,8 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static github.ikhvjs.recipes.controller.JsonConverter.toJsonString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,28 +34,25 @@ import java.util.Optional;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class RecipeControllerTest  {
-
-
-
-    static String mockCurrentDateTimeString = "2022-08-04T10:11:30";
-    static LocalDateTime mockCurrentTime = LocalDateTime.parse(mockCurrentDateTimeString);
     @MockBean
     private RecipeService service;
 
     @Autowired
     private MockMvc mockMvc;
 
+    static String mockCurrentDateTimeString = "2022-08-04T10:11:30";
+    static LocalDateTime mockCurrentTime = LocalDateTime.parse(mockCurrentDateTimeString);
+
     static MockedStatic<LocalDateTime> mockedLocalDateTime;
 
     @BeforeAll
-    public static void setUp(){
+    public static void setUp() {
         mockedLocalDateTime = Mockito.mockStatic(LocalDateTime.class);
         mockedLocalDateTime.when(LocalDateTime::now).thenReturn(mockCurrentTime);
     }
 
     @AfterAll
-    public static void tearDown() throws Exception
-    {
+    public static void tearDown() {
         mockedLocalDateTime.close();
     }
 
@@ -722,7 +717,7 @@ public class RecipeControllerTest  {
         final String mockIngredientName2 = "test ingredient 2";
         final Long mockRecipeId = 1L;
         final String mockRecipeName = "test ingredient 1";
-        final boolean mockIsVegetarian = true;
+        final Boolean mockIsVegetarian = true;
         final Short mockNumOfServings = 2;
         final String mockInstructions = "test 1 instructions";
 
@@ -764,13 +759,218 @@ public class RecipeControllerTest  {
                     .andExpect(jsonPath("$.modifiedTime", is(mockCurrentDateTimeString)));
         }
 
+        @Test
+        @DisplayName("return 400 error if the size recipe name is null")
+        void testUpdateRecipeNameNull() throws Exception {
 
+            Recipe patchRecipe = new Recipe( null, mockIsVegetarian,
+                    mockNumOfServings, mockInstructions, patchIngredients);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchRecipe)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("recipeName : must not be empty")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+        @Test
+        @DisplayName("return 400 error if the size recipe name is not between 1 and 100.")
+        void testUpdateRecipeNameSize() throws Exception {
+
+            Recipe patchRecipe = new Recipe( "*".repeat(101), mockIsVegetarian,
+                    mockNumOfServings, mockInstructions, patchIngredients);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchRecipe)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("recipeName : size must be between 1 and 100")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the vegetarian is null.")
+        void testUpdateRecipeVegetarianNull() throws Exception {
+
+            Recipe patchRecipe = new Recipe( mockRecipeName, null,
+                    mockNumOfServings, mockInstructions, patchIngredients);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchRecipe)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("isVegetarian : must not be null")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the isVegetarian is not true or false.")
+        void testUpdateRecipeVegetarianBoolean() throws Exception {
+
+            RecipeRequestBody body = new RecipeRequestBody(mockRecipeName,"test",mockNumOfServings.toString(),mockInstructions);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(body)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", containsString("Cannot deserialize value of type `java.lang.Boolean` from String \"test\": only \"true\" or \"false\" recognized")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the numOfServings is null.")
+        void testUpdateRecipeServingsNull() throws Exception {
+
+            RecipeRequestBody body = new RecipeRequestBody(mockRecipeName,Boolean.toString(mockIsVegetarian), null, mockInstructions);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(body)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("numOfServings : must not be null")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the range of numOfServings is not between 1 and 100.")
+        void testUpdateRecipeServingsRange() throws Exception {
+
+            RecipeRequestBody body = new RecipeRequestBody(mockRecipeName,Boolean.toString(mockIsVegetarian), "101", mockInstructions);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(body)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", containsString("numOfServings : range must be between 1 and 100")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if instructions is null")
+        void testUpdateRecipeInstructionNull() throws Exception {
+
+            RecipeRequestBody body = new RecipeRequestBody(mockRecipeName,Boolean.toString(mockIsVegetarian), mockNumOfServings.toString(), null);
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(body)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("instructions : must not be empty")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if instructions is empty")
+        void testUpdateRecipeInstructionEmpty() throws Exception {
+
+            RecipeRequestBody body = new RecipeRequestBody(mockRecipeName,Boolean.toString(mockIsVegetarian), mockNumOfServings.toString(), "");
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(body)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("instructions : must not be empty")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if size of instructions is not between 1 and 2000")
+        void testUpdateRecipeInstructionSize() throws Exception {
+
+            RecipeRequestBody body = new RecipeRequestBody(mockRecipeName,Boolean.toString(mockIsVegetarian), mockNumOfServings.toString(), "*".repeat(2001));
+
+            doReturn(Optional.empty()).when(service).findById(mockRecipeId);
+            doReturn(mockRecipe).when(service).update(any());
+
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(body)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("instructions : size must be between 1 and 2000")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1")));
+        }
 
         @Test
         @DisplayName("return 404 error if the recipe was not found")
-        void testRecipePatchNotFound() throws Exception {
-
-
+        void testUpdateRecipeNotFound() throws Exception {
             doReturn(Optional.empty()).when(service).findById(mockRecipeId);
             doReturn(mockRecipe).when(service).update(any());
 
@@ -787,7 +987,10 @@ public class RecipeControllerTest  {
             doReturn(Optional.of(mockRecipe)).when(service).findById(mockRecipeId);
             doThrow(new RuntimeException()).when(service).update(any());
 
-            mockMvc.perform(patch("/recipes/{id}", mockRecipeId))
+            mockMvc.perform(patch("/recipes/{id}", mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchRecipe)))
+
                     .andExpect(status().isInternalServerError());
         }
 
