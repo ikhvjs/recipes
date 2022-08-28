@@ -5,16 +5,16 @@ import github.ikhvjs.recipes.model.Recipe;
 import github.ikhvjs.recipes.controller.QueryString;
 import github.ikhvjs.recipes.repository.IngredientRepository;
 import github.ikhvjs.recipes.repository.RecipeRepository;
-import github.ikhvjs.recipes.specification.RecipeSpecification;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static github.ikhvjs.recipes.specification.RecipeSpecification.*;
 
 @Service
 public class RecipeServiceImpl implements RecipeService{
@@ -62,14 +62,11 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
         Specification<Recipe> specification = Specification
-                .where(isVegetarian == null
-                        ? null : isVegetarian
-                            ? RecipeSpecification.isVegetarian()
-                            : RecipeSpecification.isNotVegetarian())
-                .and(numOfServings == null ? null : RecipeSpecification.numOfServings(numOfServings))
-                .and(instructions == null ? null : RecipeSpecification.introductionsContains(instructions))
-                .and(includeIngredients == null ? null : RecipeSpecification.includeIngredients(includeIngredients))
-                .and(excludeIngredients == null ? null : RecipeSpecification.excludeIngredients(excludeIngredients))
+                .where(isVegetarian == null ? null : isVegetarian ? isVegetarian() : isNotVegetarian())
+                .and(numOfServings == null ? null :numOfServings(numOfServings))
+                .and(instructions == null ? null : introductionsContains(instructions))
+                .and(includeIngredients == null ? null : includeIngredients(includeIngredients))
+                .and(excludeIngredients == null ? null : excludeIngredients(excludeIngredients))
                 ;
 
         return recipeRepository.findAll(specification);

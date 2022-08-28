@@ -1,24 +1,17 @@
 package github.ikhvjs.recipes.controller;
 
-import github.ikhvjs.recipes.exception.InvalidSearchParamsException;
 import github.ikhvjs.recipes.exception.ResourceNotFoundException;
 import github.ikhvjs.recipes.model.Recipe;
 import github.ikhvjs.recipes.service.RecipeService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @RestController
@@ -32,7 +25,7 @@ public class RecipeController {
     }
 
     @GetMapping("/recipes/{id}")
-    public ResponseEntity<?> getRecipe(@PathVariable Long id) {
+    public ResponseEntity<Recipe> getRecipe(@PathVariable Long id) {
         Recipe existingRecipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));
