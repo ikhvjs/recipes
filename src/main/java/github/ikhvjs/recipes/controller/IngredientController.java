@@ -53,7 +53,7 @@ public class IngredientController {
 
     @PostMapping("/recipes/{id}/ingredients")
     public ResponseEntity<Ingredient> createRecipeIngredient(@PathVariable Long id,
-                                                 @RequestBody Ingredient ingredient) throws URISyntaxException {
+                                                 @Valid @RequestBody Ingredient ingredient) throws URISyntaxException {
         Recipe recipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));

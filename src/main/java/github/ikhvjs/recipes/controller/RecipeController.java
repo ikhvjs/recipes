@@ -25,7 +25,7 @@ public class RecipeController {
     }
 
     @GetMapping("/recipes/{id}")
-    public ResponseEntity<?> getRecipe(@PathVariable Long id) {
+    public ResponseEntity<Recipe> getRecipe(@PathVariable Long id) {
         Recipe existingRecipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));
@@ -36,7 +36,8 @@ public class RecipeController {
     }
 
     @GetMapping("/recipes")
-    public List<Recipe> searchRecipes(@Valid QueryString queryString){
+    public List<Recipe> searchRecipes(@Valid QueryString queryString)  {
+
         return recipeService.search(queryString);
     }
 

@@ -4,14 +4,15 @@ import github.ikhvjs.recipes.model.Ingredient;
 import github.ikhvjs.recipes.model.Recipe;
 import github.ikhvjs.recipes.service.IngredientService;
 import github.ikhvjs.recipes.service.RecipeService;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,6 +48,19 @@ public class IngredientControllerTest {
     static String mockCurrentDateTimeString = "2022-08-04T10:11:30";
     static LocalDateTime mockCurrentTime = LocalDateTime.parse(mockCurrentDateTimeString);
 
+    static MockedStatic<LocalDateTime> mockedLocalDateTime;
+
+    @BeforeAll
+    public static void setUp() {
+        mockedLocalDateTime = Mockito.mockStatic(LocalDateTime.class);
+        mockedLocalDateTime.when(LocalDateTime::now).thenReturn(mockCurrentTime);
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        mockedLocalDateTime.close();
+    }
+
     @Nested
     @DisplayName("GET /recipes/{id}/ingredients")
     class TestGetRecipeIngredient {
@@ -55,25 +69,12 @@ public class IngredientControllerTest {
         final String mockIngredientName1 = "test ingredient 1";
         final String mockIngredientName2 = "test ingredient 2";
         final Long mockRecipeId = 1L;
-        final String mockRecipeName = "test ingredient 1";
-        final boolean mockIsVegetarian = true;
-        final Short mockNumOfServings = 2;
-        final String mockInstructions = "test 1 instructions";
 
         Ingredient mockIngredient1 = new Ingredient(mockIngredientId1, mockIngredientName1);
         Ingredient mockIngredient2 = new Ingredient(mockIngredientId2, mockIngredientName2);
         List<Ingredient> mockIngredients = List.of(
                 mockIngredient1,
                 mockIngredient2);
-
-        Recipe mockRecipe = new Recipe(mockRecipeId,
-                mockRecipeName,
-                mockIsVegetarian,
-                mockNumOfServings,
-                mockInstructions,
-                mockIngredients,
-                mockCurrentTime);
-
 
         @Test
         @DisplayName("return 200 ok if the retrieval succeeded")
@@ -204,8 +205,9 @@ public class IngredientControllerTest {
 
         @Test
         @DisplayName("return 404 error if the recipe is not found")
-        void testRecipeIngredientCreateNotFound() throws Exception {
+        void testRecipeIngredientCreateNotNull() throws Exception {
             doReturn(Optional.empty()).when(recipeService).findById(mockRecipeId);
+
             doReturn(mockIngredient).when(ingredientService).create(any());
 
             mockMvc.perform(post("/recipes/{id}/ingredients",mockRecipeId)
@@ -213,6 +215,50 @@ public class IngredientControllerTest {
                             .content(toJsonString(postIngredient)))
 
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("return 400 error if the ingredient name is null")
+        void testRecipeIngredientCreateNameNull() throws Exception {
+            Ingredient postIngredient = new Ingredient(null);
+
+            doReturn(Optional.of(mockRecipe)).when(recipeService).findById(mockRecipeId);
+            doReturn(mockIngredient).when(ingredientService).create(any());
+
+            mockMvc.perform(post("/recipes/{id}/ingredients",mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(postIngredient)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("ingredientName : must not be empty")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1/ingredients")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the size of ingredient name is not between 1 and 100")
+        void testRecipeIngredientCreateNameSize() throws Exception {
+            Ingredient postIngredient = new Ingredient("*".repeat(101));
+
+            doReturn(Optional.of(mockRecipe)).when(recipeService).findById(mockRecipeId);
+            doReturn(mockIngredient).when(ingredientService).create(any());
+
+            mockMvc.perform(post("/recipes/{id}/ingredients",mockRecipeId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(postIngredient)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("ingredientName : size must be between 1 and 100")))
+                    .andExpect(jsonPath("$.description", is("uri=/recipes/1/ingredients")));
         }
         @Test
         @DisplayName("return 500 error if the creation failed")
@@ -235,7 +281,7 @@ public class IngredientControllerTest {
         final String mockIngredientName = "test ingredient 1";
         final Ingredient mockIngredient = new Ingredient(mockIngredientId, mockIngredientName);
 
-        final Ingredient patchIngredient = new Ingredient(mockIngredientId, mockIngredientName);
+        final Ingredient patchIngredient = new Ingredient(mockIngredientName);
         @Test
         @DisplayName("return 200 ok if the update succeeded")
         void testRecipeIngredientUpdateSuccess() throws Exception {
@@ -251,6 +297,72 @@ public class IngredientControllerTest {
 
                     .andExpect(jsonPath("$.id", is(mockIngredientId.intValue())))
                     .andExpect(jsonPath("$.ingredientName", is(mockIngredientName)));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the ingredient name is null")
+        void testRecipeIngredientUpdateRecipeNull() throws Exception {
+            final Ingredient patchIngredient = new Ingredient(null);
+
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doReturn(mockIngredient).when(ingredientService).update(any());
+
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchIngredient)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("ingredientName : must not be empty")))
+                    .andExpect(jsonPath("$.description", is("uri=/ingredients/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the ingredient name is empty")
+        void testRecipeIngredientUpdateRecipeEmpty() throws Exception {
+            final Ingredient patchIngredient = new Ingredient("");
+
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doReturn(mockIngredient).when(ingredientService).update(any());
+
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchIngredient)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("ingredientName : must not be empty")))
+                    .andExpect(jsonPath("$.description", is("uri=/ingredients/1")));
+        }
+
+        @Test
+        @DisplayName("return 400 error if the size of ingredient name is not between 1 and 100")
+        void testRecipeIngredientUpdateRecipeSize() throws Exception {
+            final Ingredient patchIngredient = new Ingredient("*".repeat(101));
+
+            doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
+            doReturn(mockIngredient).when(ingredientService).update(any());
+
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(toJsonString(patchIngredient)))
+
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                    .andExpect(jsonPath("$.timestamp", is(mockCurrentDateTimeString)))
+                    .andExpect(jsonPath("$.messages").isArray())
+                    .andExpect(jsonPath("$.messages",hasSize(1)))
+                    .andExpect(jsonPath("$.messages[0]", is("ingredientName : size must be between 1 and 100")))
+                    .andExpect(jsonPath("$.description", is("uri=/ingredients/1")));
         }
 
         @Test
@@ -272,7 +384,10 @@ public class IngredientControllerTest {
             doReturn(Optional.of(mockIngredient)).when(ingredientService).findById(mockIngredientId);
             doThrow(new RuntimeException()).when(ingredientService).update(any());
 
-            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId))
+            mockMvc.perform(patch("/ingredients/{id}", mockIngredientId)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(toJsonString(patchIngredient)))
+
                     .andExpect(status().isInternalServerError());
         }
     }
