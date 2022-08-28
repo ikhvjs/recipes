@@ -21,6 +21,14 @@ public class QueryString {
 
     public QueryString(){}
 
+    public QueryString(String isVegetarian, String numOfServings, List<String> includeIngredients, List<String> excludeIngredients, String instructionsContains) {
+        this.isVegetarian = isVegetarian;
+        this.numOfServings = numOfServings;
+        this.includeIngredients = includeIngredients;
+        this.excludeIngredients = excludeIngredients;
+        this.instructionsContains = instructionsContains;
+    }
+
     @Override
     public String toString() {
         return "QueryString{" +
@@ -30,14 +38,6 @@ public class QueryString {
                 ", excludeIngredients=" + excludeIngredients +
                 ", instructionsContains='" + instructionsContains + '\'' +
                 '}';
-    }
-
-    public QueryString(String isVegetarian, String numOfServings, List<String> includeIngredients, List<String> excludeIngredients, String instructionsContains) {
-        this.isVegetarian = isVegetarian;
-        this.numOfServings = numOfServings;
-        this.includeIngredients = includeIngredients;
-        this.excludeIngredients = excludeIngredients;
-        this.instructionsContains = instructionsContains;
     }
 
     public String getIsVegetarian() {

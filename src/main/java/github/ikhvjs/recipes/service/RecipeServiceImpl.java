@@ -3,10 +3,10 @@ package github.ikhvjs.recipes.service;
 import github.ikhvjs.recipes.exception.InvalidSearchParamsException;
 import github.ikhvjs.recipes.model.Recipe;
 import github.ikhvjs.recipes.controller.QueryString;
-import github.ikhvjs.recipes.repository.IngredientRepository;
 import github.ikhvjs.recipes.repository.RecipeRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +21,7 @@ public class RecipeServiceImpl implements RecipeService{
 
     private static final Logger logger = LogManager.getLogger(RecipeServiceImpl.class);
 
-    private  RecipeRepository recipeRepository;
-    private  IngredientRepository ingredientRepository;
+    private RecipeRepository recipeRepository;
 
     public RecipeServiceImpl(RecipeRepository recipeRepository) {
         this.recipeRepository = recipeRepository;
