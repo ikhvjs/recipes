@@ -1,0 +1,87 @@
+recipes:
+  - id: 1
+    recipe_name: test1
+    is_vegetarian: 0
+    num_of_servings: 2
+    instructions: aaa
+    modified_time: 2022-08-15
+  - id: 2
+    recipe_name: test2
+    is_vegetarian: 0
+    num_of_servings: 2
+    instructions: aaabbb
+    modified_time: 2022-08-15
+  - id: 3
+    recipe_name: test3
+    is_vegetarian: 0
+    num_of_servings: 2
+    instructions: aaabbbccc
+    modified_time: 2022-08-15
+  - id: 4
+    recipe_name: test4
+    is_vegetarian: 1
+    num_of_servings: 3
+    instructions: aaa
+    modified_time: 2022-08-15
+  - id: 5
+    recipe_name: test5
+    is_vegetarian: 1
+    num_of_servings: 3
+    instructions: bbb
+    modified_time: 2022-08-15
+  - id: 6
+    recipe_name: test6
+    is_vegetarian: 1
+    num_of_servings: 5
+    instructions: ccc
+    modified_time: 2022-08-15
+  - id: 7
+    recipe_name: test7
+    is_vegetarian: 1
+    num_of_servings: 5
+    instructions: abc
+    modified_time: 2022-08-15
+
+ingredients:
+  - id: 1
+    ingredient_name: a
+    recipe_id: 1
+  - id: 2
+    ingredient_name: b
+    recipe_id: 1
+  - id: 3
+    ingredient_name: a
+    recipe_id: 2
+  - id: 4
+    ingredient_name: c
+    recipe_id: 2
+  - id: 5
+    ingredient_name: a
+    recipe_id: 3
+  - id: 6
+    ingredient_name: d
+    recipe_id: 3
+  - id: 7
+    ingredient_name: d
+    recipe_id: 4
+  - id: 8
+    ingredient_name: f
+    recipe_id: 4
+  - id: 9
+    ingredient_name: a
+    recipe_id: 5
+  - id: 10
+    ingredient_name: e
+    recipe_id: 5
+  - id: 11
+    ingredient_name: a
+    recipe_id: 6
+  - id: 12
+    ingredient_name: f
+    recipe_id: 6
+  - id: 13
+    ingredient_name: j
+    recipe_id: 6
+  - id: 14
+    ingredient_name: g
+    recipe_id: 7

@@ -1,0 +1,7 @@
+properties:
+  caseSensitiveTableNames: true
+connectionConfig:
+  driver: "com.mysql.cj.jdbc.Driver"
+  url: "jdbc:mysql://localhost:3307/test_recipes"
+  user: "root"
+  password: "password"

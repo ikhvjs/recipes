@@ -19,6 +19,7 @@ public class Recipe {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="id")
     private Long id;
     @NotEmpty
     @Size(max = 100, message = "size must be between 1 and 100")
@@ -32,12 +33,12 @@ public class Recipe {
 
     @NotNull
     @Range(min = 1, max = 100, message = "range must be between 1 and 100")
-    @Column(name="num_servings")
+    @Column(name="num_of_servings")
     private Short numOfServings;
 
     @NotEmpty
     @Size(max = 2000, message = "size must be between 1 and 2000")
-    @Column(length = 2000)
+    @Column(name="instructions", length = 2000)
     private String instructions;
 
     @Override

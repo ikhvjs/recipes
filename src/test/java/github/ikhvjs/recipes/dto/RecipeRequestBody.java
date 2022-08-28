@@ -1,4 +1,4 @@
-package github.ikhvjs.recipes.controller;
+package github.ikhvjs.recipes.dto;
 
 public class RecipeRequestBody {
     String recipeName;

@@ -1,5 +1,6 @@
 package github.ikhvjs.recipes.controller;
 
+import github.ikhvjs.recipes.dto.RecipeRequestBody;
 import github.ikhvjs.recipes.model.Ingredient;
 import github.ikhvjs.recipes.model.Recipe;
 import github.ikhvjs.recipes.service.RecipeService;
