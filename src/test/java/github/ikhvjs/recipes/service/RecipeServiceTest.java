@@ -46,7 +46,7 @@ public class RecipeServiceTest {
         private final Long mockId = 1L;
 
         @Test
-        @DisplayName("Success if id is found")
+        @DisplayName("return recipe if id is found")
         void testFindByIdSuccess() {
             final Long mockIngredientId1 = 1L;
             final Long mockIngredientId2 = 1L;
@@ -74,7 +74,7 @@ public class RecipeServiceTest {
         }
 
         @Test
-        @DisplayName("Fail if id is not found")
+        @DisplayName("return Optional.empty() if id is not found")
         void testFindByIdNotFound() {
 
             doReturn(Optional.empty()).when(repository).findById(mockId);
@@ -96,18 +96,19 @@ public class RecipeServiceTest {
         private final String mockInstructions = "test 1 instructions";
 
         Recipe mockRecipe = new Recipe(null, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
+                mockInstructions, null,  null);
+
+        Recipe mockReturnedRecipe = new Recipe(1L, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                 mockInstructions, null,  mockCurrentTime);
         @Test
-        @DisplayName("Success if id is found")
+        @DisplayName("return created recipe")
         void testCreateSuccess() {
-
-
-            doReturn(mockRecipe).when(repository).save(mockRecipe);
-
+            doReturn(mockReturnedRecipe).when(repository).save(mockRecipe);
 
             Recipe returnedRecipe = service.create(mockRecipe);
 
-            assertNotNull(returnedRecipe,"The returned Recipe should be not null");
+            assertNotNull(returnedRecipe,"The returned Recipe should not be null");
+            assertThat(returnedRecipe).usingRecursiveComparison().isEqualTo(mockReturnedRecipe);
         }
 
     }
@@ -134,18 +135,18 @@ public class RecipeServiceTest {
                         "mockInstructions", null,  mockCurrentTime));
 
         @Test
-        @DisplayName("Success if search param is valid")
+        @DisplayName("return recipes if search param is valid")
         void testCreateSuccess() {
             doReturn(mockRecipes).when(repository).findAll((Specification<Recipe>) any());
 
 
             List<Recipe> returnedRecipes = service.search(mockValidQueryString);
 
-            assertNotNull(returnedRecipes,"The returned Recipes should be not null");
+            assertNotNull(returnedRecipes,"The returned Recipes should not be null");
         }
 
         @Test
-        @DisplayName("Fail if search param contains both includeIngredients and excludeIngredients")
+        @DisplayName("throw InvalidSearchParamsException if search param contains both includeIngredients and excludeIngredients")
         void testCreateFail() {
             doReturn(mockRecipes).when(repository).findAll((Specification<Recipe>) any());
 
@@ -175,13 +176,13 @@ public class RecipeServiceTest {
         Recipe mockReturnedRecipe = new Recipe(mockRecipeId, mockRecipeName, mockIsVegetarian,  mockNumOfServings,
                 mockInstructions, null,  mockCurrentTime);
         @Test
-        @DisplayName("Success")
+        @DisplayName("return updated recipe")
         void testUpdateSuccess() {
             doReturn(mockReturnedRecipe).when(repository).save(mockInputRecipe);
 
             Recipe returnedRecipe = service.update(mockInputRecipe);
 
-            assertNotNull(returnedRecipe,"The returned Recipe should be not null");
+            assertNotNull(returnedRecipe,"The returned Recipe should not be null");
             assertThat(returnedRecipe).usingRecursiveComparison().isEqualTo(mockReturnedRecipe);
         }
     }
@@ -190,12 +191,12 @@ public class RecipeServiceTest {
     @DisplayName("Test deleteById")
     class TestDeleteById {
         @Test
-        @DisplayName("Success")
+        @DisplayName("execute repository.deleteById")
         void testDeleteByIdSuccess() {
            final Long mockRecipeId = 1L;
-            doNothing().when(repository).deleteById(any());
+            doNothing().when(repository).deleteById(mockRecipeId);
             service.deleteById(mockRecipeId);
-            verify(repository).deleteById(any());
+            verify(repository).deleteById(mockRecipeId);
         }
     }
 
@@ -204,7 +205,7 @@ public class RecipeServiceTest {
     class TestExistsById {
         private final Long mockRecipeId = 1L;
         @Test
-        @DisplayName("Success")
+        @DisplayName("return true if repository.existsById return true")
         void testExistsByIdSuccess() {
             doReturn(true).when(repository).existsById(any());
 
@@ -214,7 +215,7 @@ public class RecipeServiceTest {
         }
 
         @Test
-        @DisplayName("Fail if repository fail")
+        @DisplayName("return false if repository.existsById return false")
         void testExistsByIdFail() {
             doReturn(false).when(repository).existsById(any());
 
