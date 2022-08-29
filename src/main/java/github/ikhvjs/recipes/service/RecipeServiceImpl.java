@@ -6,7 +6,6 @@ import github.ikhvjs.recipes.controller.QueryString;
 import github.ikhvjs.recipes.repository.RecipeRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,7 @@ public class RecipeServiceImpl implements RecipeService{
 
     private static final Logger logger = LogManager.getLogger(RecipeServiceImpl.class);
 
-    private RecipeRepository recipeRepository;
+    private final RecipeRepository recipeRepository;
 
     public RecipeServiceImpl(RecipeRepository recipeRepository) {
         this.recipeRepository = recipeRepository;
