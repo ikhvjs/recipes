@@ -1,0 +1,404 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Recipes API
+  description: A simple API to manage recipes
+
+tags:
+  - name: Recipe
+    description: Information about the recipe
+  - name: Ingredient
+    description: Information about the ingredient
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+paths:
+  /recipes:
+    get:
+      tags:
+        - Recipe
+      description: Return a list of recipes
+      parameters:
+        - $ref: '#/components/parameters/isVegetarian'
+        - $ref: '#/components/parameters/numOfServings'
+        - $ref: '#/components/parameters/instructionsContains'
+        - $ref: '#/components/parameters/includeIngredients'
+        - $ref: '#/components/parameters/excludeIngredients'
+      responses:
+        '200':
+          description: Successfully returned a list of recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/recipe'
+        '500':
+          $ref: '#/components/responses/500Error'
+    post:
+      tags:
+        - Recipe
+      description: create a recipe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestRecipe'
+      responses:
+        '200':
+          description: Successfully returned a recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+        '400':
+          $ref: '#/components/responses/400Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+
+
+  /recipes/{recipeId}:
+    get:
+      tags:
+        - Recipe
+      description: return a recipe from recipe id
+      parameters:
+        - $ref: '#/components/parameters/recipeId'
+      responses:
+        '200':
+          description: Successfully returned a recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+    patch:
+      tags:
+        - Recipe
+      description: update a recipe by recipe id
+      parameters:
+        - $ref: '#/components/parameters/recipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestRecipe'
+      responses:
+        '200':
+          description: Successfully update a recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+    delete:
+      tags:
+        - Recipe
+      description: delete a recipe by recipe id
+      parameters:
+        - $ref: '#/components/parameters/recipeId'
+      responses:
+        '200':
+          description: Successfully delete a recipe
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+
+  /ingredients/{ingredientId}:
+    get:
+      tags:
+        - Ingredient
+      description: Return a ingredient by Id
+      parameters:
+        - $ref: '#/components/parameters/ingredientId'
+      responses:
+        '200':
+          description: Successfully returned an ingredient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredient'
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+    patch:
+      tags:
+        - Ingredient
+      description: update an ingredient
+      parameters:
+        - $ref: '#/components/parameters/ingredientId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestIngredient'
+      responses:
+        '200':
+          description: Successfully update an ingredient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredient'
+        '400':
+          $ref: '#/components/responses/400Error'
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+    delete:
+      tags:
+        - Ingredient
+      description: delete an ingredient
+      parameters:
+        - $ref: '#/components/parameters/ingredientId'
+      responses:
+        '200':
+          description: Successfully delete an ingredient
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+
+  /recipes/{recipeId}/ingredients:
+    get:
+      tags:
+        - Ingredient
+      description: get all ingredients by recipe id
+      parameters:
+        - $ref: '#/components/parameters/recipeId'
+      responses:
+        '200':
+          description: Successfully returned a list of ingredient
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ingredient'
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+    post:
+      tags:
+        - Ingredient
+      description: update an ingredient by recipe id
+      parameters:
+        - $ref: '#/components/parameters/recipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestIngredient'
+      responses:
+        '200':
+          description: Successfully create an ingredient by recipe id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredient'
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+    delete:
+      tags:
+        - Ingredient
+      description: delete all ingredients by recipe id
+      parameters:
+        - $ref: '#/components/parameters/recipeId'
+      responses:
+        '200':
+          description: Successfully delete an ingredient
+        '404':
+          $ref: '#/components/responses/404Error'
+        '500':
+          $ref: '#/components/responses/500Error'
+
+components:
+  parameters:
+    recipeId:
+      name: recipeId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    ingredientId:
+      name: ingredientId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    isVegetarian:
+      name: isVegetarian
+      in: query
+      required: false
+      description: Filter whether the recipe is vegetarian
+      schema:
+        type: boolean
+    numOfServings:
+      name: numOfServings
+      in: query
+      required: false
+      description: Filter by number of servings
+      schema:
+        type: integer
+        format: int32
+    instructionsContains:
+      name: instructionsContains
+      in: query
+      required: false
+      description: Filter whether instructions contains the text
+      schema:
+        type: string
+    includeIngredients:
+      name: includeIngredients
+      in: query
+      required: false
+      description: Filter by included ingredients
+      schema:
+        type: array
+        items:
+          type: string
+      explode: false
+    excludeIngredients:
+      name: excludeIngredients
+      in: query
+      required: false
+      description: Filter by excluded ingredients
+      schema:
+        type: array
+        items:
+          type: string
+      explode: false
+  schemas:
+    recipe:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        recipeName:
+          type: string
+        isVegetarian:
+          type: boolean
+        numOfServings:
+          type: integer
+        instructions:
+          type: string
+        modifiedTime:
+          type: string
+          format: date-time
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/ingredient'
+    ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        ingredientName:
+          type: string
+    requestRecipe:
+      type: object
+      properties:
+        recipeName:
+          type: string
+        isVegetarian:
+          type: boolean
+        numOfServings:
+          type: integer
+        instructions:
+          type: string
+    requestIngredient:
+      type: object
+      properties:
+        ingredientName:
+          type: string
+  responses:
+    404Error:
+      description: record not found by id
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              timestamp:
+                type: string
+                format: date-time
+              messages:
+                type: array
+                items:
+                  type: string
+              description:
+                type: string
+            example:
+              statusCode: 404
+              timestamp: 2022-08-29T18:55:12.217Z
+              messages: ["recipe id is not found"]
+              description: "string"
+    400Error:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              timestamp:
+                type: string
+                format: date-time
+              messages:
+                type: array
+                items:
+                  type: string
+              description:
+                type: string
+            example:
+              statusCode: 400
+              timestamp: 2022-08-29T18:55:12.217Z
+              messages: ["string"]
+              description: "string"
+    500Error:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              timestamp:
+                type: string
+                format: date-time
+              messages:
+                type: array
+                items:
+                  type: string
+              description:
+                type: string
+            example:
+              statusCode: 500
+              timestamp: 2022-08-29T18:55:12.217Z
+              messages: ["Internal Server Error"]
+              description: "string"

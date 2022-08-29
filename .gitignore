@@ -6,6 +6,7 @@
 
 # DB mount data
 .data
+.test-data
 
 # Package Files #
 *.jar
