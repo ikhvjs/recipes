@@ -26,6 +26,7 @@ public class RecipeController {
 
     @GetMapping("/recipes/{id}")
     public ResponseEntity<Recipe> getRecipe(@PathVariable Long id) {
+        logger.info("get recipe with id: {}", id);
         Recipe existingRecipe = recipeService
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));
@@ -37,7 +38,7 @@ public class RecipeController {
 
     @GetMapping("/recipes")
     public List<Recipe> searchRecipes(@Valid QueryString queryString)  {
-
+        logger.info("get recipes with query string: {}", queryString);
         return recipeService.search(queryString);
     }
 
@@ -73,8 +74,7 @@ public class RecipeController {
 
     @DeleteMapping("/recipes/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
-
-        logger.info("Deleting recipe with ID {}", id);
+        logger.info("Deleting a recipe with id {}", id);
 
         Recipe existingRecipe = recipeService
                 .findById(id)

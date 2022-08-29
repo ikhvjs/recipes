@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>github.ikhvjs</groupId>
 	<artifactId>recipes</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>recipes</name>
 	<description>Project for favourite recipes</description>
 	<properties>
