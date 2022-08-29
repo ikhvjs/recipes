@@ -68,7 +68,7 @@ public class RecipeController {
 
         return ResponseEntity
                 .ok()
-                .body(recipeService.update(recipe));
+                .body(recipeService.update(existingRecipe));
     }
 
     @DeleteMapping("/recipes/{id}")
@@ -78,7 +78,7 @@ public class RecipeController {
 
         Recipe existingRecipe = recipeService
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));;
+                .orElseThrow(() -> new ResourceNotFoundException("Not found Recipe with id = " + id));
 
         recipeService.deleteById(existingRecipe.getId());
 
